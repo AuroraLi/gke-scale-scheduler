@@ -1,0 +1,24 @@
+{
+    "name": "cloud-functions-schedule-instance",
+    "license": "Apache-2.0",
+    "author": "Google Inc.",
+    "engines": {
+      "node": ">=10"
+    },
+    "repository": "googleapis/nodejs-cloud-container",
+    "private": true,
+    "files": [
+      "*.js"
+    ],
+    "scripts": {
+      "test": "mocha system-test --timeout 1000000"
+    },
+    "dependencies": {
+      "@google-cloud/container": "^3.0.0",
+      "uuid": "^8.3.2"
+    },
+    "devDependencies": {
+      "chai": "^4.2.0",
+      "mocha": "^8.0.0"
+    }
+  }
