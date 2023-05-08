@@ -15,10 +15,11 @@ resource "google_service_account" "function_sa" {
 }
 
 data "google_project" "project" {
+    project_id = var.project-id
 }
 
 resource "google_project_iam_member" "project" {
-  project = data.google_project.project.id
+  project = data.google_project.project.project_id
   role    = "roles/container.clusterAdmin"
   member  = "serviceAccount:${google_service_account.function_sa.email}"
 }
@@ -26,10 +27,11 @@ resource "google_project_iam_member" "project" {
 
 
 resource "google_cloudfunctions_function" "function" {
-  name        = "function-test"
-  description = "My function"
-  runtime     = "nodejs10"
-  region        = var.region
+  name        = "setSizePubSub"
+  description = "Set GKE nodepool size"
+  runtime     = "nodejs12"
+  region      = var.region
+  project = data.google_project.project.project_id
 
   available_memory_mb   = 128
   source_archive_bucket = google_storage_bucket.scale_bucket.name
@@ -54,18 +56,25 @@ resource "google_cloudfunctions_function" "function" {
 resource "google_storage_bucket" "scale_bucket" {
   name     = "liaurora-scale"
   location = "US"
+  project = data.google_project.project.project_id
+}
+
+data "archive_file" "nodejs" {
+  type        = "zip"
+  source_dir = "../scale_nodejs/"
+  output_path = "${path.module}/scale.zip"
 }
 
 resource "google_storage_bucket_object" "scale_archive" {
   name   = "scale.zip"
   bucket = google_storage_bucket.scale_bucket.name
-  source = "./scale.zip"
+  source = "scale.zip"
 }
 
 
 resource "google_project_service" "function" {
   service = "cloudfunctions.googleapis.com"
-
+  project = data.google_project.project.project_id
   timeouts {
     create = "30m"
     update = "40m"
@@ -76,7 +85,7 @@ resource "google_project_service" "function" {
 
 resource "google_project_service" "artifact" {
   service = "artifactregistry.googleapis.com"
-
+  project = data.google_project.project.project_id
   timeouts {
     create = "30m"
     update = "40m"
@@ -87,7 +96,7 @@ resource "google_project_service" "artifact" {
 
 resource "google_project_service" "build" {
   service = "cloudbuild.googleapis.com"
-
+  project = data.google_project.project.project_id
   timeouts {
     create = "30m"
     update = "40m"
@@ -98,7 +107,7 @@ resource "google_project_service" "build" {
 
 resource "google_project_service" "eventarc" {
   service = "eventarc.googleapis.com"
-
+  project = data.google_project.project.project_id
   timeouts {
     create = "30m"
     update = "40m"
@@ -109,7 +118,7 @@ resource "google_project_service" "eventarc" {
 
 resource "google_project_service" "runadmin" {
   service = "run.googleapis.com"
-
+  project = data.google_project.project.project_id
   timeouts {
     create = "30m"
     update = "40m"
@@ -121,7 +130,7 @@ resource "google_project_service" "runadmin" {
 
 resource "google_project_service" "pubsub" {
   service = "pubsub.googleapis.com"
-
+  project = data.google_project.project.project_id
   timeouts {
     create = "30m"
     update = "40m"
@@ -132,6 +141,7 @@ resource "google_project_service" "pubsub" {
 
 
 resource "google_cloud_scheduler_job" "scaleup_job" {
+  project = data.google_project.project.project_id
   region        = var.region
   name        = "scaleup-job"
   description = "scale up job"
@@ -148,6 +158,7 @@ resource "google_cloud_scheduler_job" "scaleup_job" {
 }
 
 resource "google_cloud_scheduler_job" "scaledown_job" {
+  project = data.google_project.project.project_id
   region        = var.region
   name        = "scaledown-job"
   description = "scale down job"
@@ -166,11 +177,18 @@ resource "google_cloud_scheduler_job" "scaledown_job" {
 
 resource "google_project_service" "scheduler" {
   service = "cloudscheduler.googleapis.com"
-
+  project = data.google_project.project.project_id
   timeouts {
     create = "30m"
     update = "40m"
   }
 
   disable_dependent_services = false
+}
+
+
+resource "google_project_iam_member" "build" {
+  project = data.google_project.project.project_id
+  role    = "roles/cloudfunctions.developer"
+  member  = "serviceAccount:${data.google_project.project.number}@cloudbuild.gserviceaccount.com"
 }

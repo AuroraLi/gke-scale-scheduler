@@ -16,3 +16,4 @@ variable "down-size" {
 variable "gke-name" {
     default = "cluster-1"
 }
+variable "project-id" {}

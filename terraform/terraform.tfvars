@@ -1,6 +1,7 @@
-gke-zone="us-west1-a"
-gke-pool="default"
+gke-zone="us-central1-c"
+gke-pool="default-pool"
 up-size=3
 down-size=0
-region="us-west1" #Should be in the same region as your cluster
+region="us-central1" #Should be in the same region as your cluster
 gke-name="cluster-1"
+project-id = ""
