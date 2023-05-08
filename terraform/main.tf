@@ -1,4 +1,5 @@
 resource "google_pubsub_topic" "scale" {
+  project = data.google_project.project.project_id
   name = "gke-scale"
   depends_on = [
     google_project_service.pubsub
@@ -10,6 +11,7 @@ resource "google_pubsub_topic" "scale" {
 # }
 
 resource "google_service_account" "function_sa" {
+  project = data.google_project.project.project_id
   account_id   = "scale-function"
   display_name = "sa for scale gke"
 }
